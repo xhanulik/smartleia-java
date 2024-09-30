@@ -24,6 +24,7 @@ public class LEIA {
      * Try to detect connected LEIA board and open serial port for communication.
      */
     public void open() {
+        System.out.println("Opening ports");
         SerialPort[] availablePorts = SerialPort.getCommPorts();
         int count = 0;
 
@@ -63,6 +64,7 @@ public class LEIA {
         // read all bytes from port
         readAvailableBytes();
         testWaitingFlag();
+        System.out.println("Ports opening OK");
     }
 
     private void isValidPort() {
@@ -160,9 +162,11 @@ public class LEIA {
         int readBytes = serialPort.readBytes(status, status.length);
         if (readBytes == 0 || status[0] != 'R')
             throw new RuntimeException("No response ack received.");
+        System.out.println("ACK OK");
     }
 
     private void sendCommand(byte[] command, LEIAStructure struct) {
+        System.out.println("Sending command");
         testWaitingFlag();
         serialPort.writeBytes(command, command.length, 0);
 
@@ -179,13 +183,16 @@ public class LEIA {
         }
         checkStatus();
         checkAck();
+        System.out.println("Sending command OK");
     }
 
     private int readResponseSize() {
+        System.out.println("Read response size");
         byte[] response = new byte[RESPONSE_LEN_SIZE];
         int read = serialPort.readBytes(response, RESPONSE_LEN_SIZE);
         if (read != RESPONSE_LEN_SIZE)
             throw new RuntimeException("Unexpected bytes for response size!");
+        System.out.println("Read response size OK");
         return ByteBuffer.wrap(response).getInt();
     }
 
