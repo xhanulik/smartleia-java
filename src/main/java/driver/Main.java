@@ -7,6 +7,10 @@ public class Main {
         try {
             target = new LEIA();
             target.open();
+            if (target.isCardInserted())
+                System.out.println("Card is inserted");
+            else
+                System.out.println("Card is NOT inserted");
             target.close();
         } catch (Exception e) {
             if (target != null)

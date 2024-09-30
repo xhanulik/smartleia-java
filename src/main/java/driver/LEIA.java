@@ -76,7 +76,7 @@ public class LEIA {
     private byte[] readAvailableBytes() {
         isValidPort();
 
-        System.out.println("Reading all bytes");
+        System.out.print("Reading all bytes");
 
         int bytesRead = 0;
         int availableBytes = serialPort.bytesAvailable();
@@ -86,7 +86,7 @@ public class LEIA {
             int bytes = serialPort.readBytes(buffer, availableBytes, bytesRead);
             bytesRead += bytes;
         }
-        System.out.printf("%d bytes read\n", bytesRead);
+        System.out.printf(": %d bytes read\n", bytesRead);
         return buffer;
     }
 
