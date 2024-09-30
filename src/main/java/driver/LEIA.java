@@ -3,6 +3,7 @@ package driver;
 import com.fazecast.jSerialComm.*;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class LEIA {
 
@@ -192,8 +193,9 @@ public class LEIA {
         int readBytes = serialPort.readBytes(response, RESPONSE_LEN_SIZE);
         if (readBytes != RESPONSE_LEN_SIZE)
             throw new RuntimeException("Unexpected bytes for response size!");
-        int result = ByteBuffer.wrap(response).getInt();
-        System.out.printf("Response size is %d (%x%x%x%x)\n", result, response[0], response[1], response[2], response[3]);
+        // Omit creation of response size struct as in python
+        int result = ByteBuffer.wrap(response).order(ByteOrder.LITTLE_ENDIAN).getInt();
+        System.out.printf("Response size is %d\n", result);
         System.out.println("Read response size OK");
         return result;
     }
