@@ -189,11 +189,13 @@ public class LEIA {
     private int readResponseSize() {
         System.out.println("Read response size");
         byte[] response = new byte[RESPONSE_LEN_SIZE];
-        int read = serialPort.readBytes(response, RESPONSE_LEN_SIZE);
-        if (read != RESPONSE_LEN_SIZE)
+        int readBytes = serialPort.readBytes(response, RESPONSE_LEN_SIZE);
+        if (readBytes != RESPONSE_LEN_SIZE)
             throw new RuntimeException("Unexpected bytes for response size!");
+        int result = ByteBuffer.wrap(response).getInt();
+        System.out.printf("Response size is %d (%x%x%x%x)\n", result, response[0], response[1], response[2], response[3]);
         System.out.println("Read response size OK");
-        return ByteBuffer.wrap(response).getInt();
+        return result;
     }
 
     /**
@@ -262,7 +264,7 @@ public class LEIA {
      * Close opened port for LEIA device
      */
     public void close() {
-        if (serialPort.isOpen()) {
+        if (serialPort != null && serialPort.isOpen()) {
             System.out.printf("Closing serial port %s (%d/%d)\n", serialPort.getDescriptivePortName(), USB_VID, USB_PID);
             serialPort.closePort();
             serialPort = null;
