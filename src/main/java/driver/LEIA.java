@@ -17,7 +17,7 @@ public class LEIA {
 
 
     public LEIA() {
-        this.open();
+
     }
 
     /**
@@ -86,7 +86,7 @@ public class LEIA {
             int bytes = serialPort.readBytes(buffer, availableBytes, bytesRead);
             bytesRead += bytes;
         }
-        System.out.printf("%d bytes read", bytesRead);
+        System.out.printf("%d bytes read\n", bytesRead);
         return buffer;
     }
 
