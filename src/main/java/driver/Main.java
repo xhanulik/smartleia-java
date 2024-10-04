@@ -13,6 +13,8 @@ public class Main {
             else
                 System.out.println("Card is NOT inserted");
             target.configureSmartcard(ConfigureSmartcardCommand.T.T1, 0, 0, true, true);
+            ATR atr = target.getATR();
+            System.out.printf("We are using protocol T=%d and the frequency of the ISO7816 clock is {%d / 1000} kHz !\n", atr.tProtocolCurr, atr.fMaxCurr);
             target.close();
         } catch (Exception e) {
             if (target != null)

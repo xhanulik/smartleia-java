@@ -187,7 +187,7 @@ public class LEIA {
             System.out.printf("Sending packed data: %s\n", Arrays.toString(packedData));
             serialPort.writeBytes(packedData, packedData.length, 0);
         }
-        wait(2000);
+        wait(1000);
         checkStatus();
         checkAck();
         System.out.println("< Send command OK");
@@ -237,7 +237,7 @@ public class LEIA {
      * @implNote command ID: "c" + LEIA structure
      */
     public void configureSmartcard(ConfigureSmartcardCommand.T protocolToUse, int ETUToUse, int freqToUse, boolean negotiatePts, boolean negotiateBaudrate) {
-        System.out.println(">Configuring smartcard reader");
+        System.out.println("> Configuring smartcard reader");
         if (!isCardInserted())
             throw new RuntimeException("Error: card not inserted! Please insert a card to configure it.");
         synchronized (lock) {
@@ -260,8 +260,22 @@ public class LEIA {
     /**
      * @implNote command ID: "t"
      */
-    public void getATR() {
-
+    public ATR getATR() {
+        System.out.println("> Get ATR");
+        ATR atr = new ATR();
+        synchronized (lock) {
+            sendCommand("t".getBytes(), null);
+            // read and parse response
+            int resSize = this.readResponseSize();
+            if (resSize != 55)
+                throw new RuntimeException("Unexpected response size! Cannot parse ATR.");
+            byte[] response = new byte[55];
+            serialPort.readBytes(response, resSize);
+            atr.unpack(response);
+            System.out.println(atr);
+        }
+        System.out.println("< Get ATR OK");
+        return atr;
     }
 
     /**
