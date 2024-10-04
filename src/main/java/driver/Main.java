@@ -1,5 +1,6 @@
 package driver;
 
+
 public class Main {
     public static void main(String[] args) {
         System.out.println("Starting LEIA:\n");
@@ -11,6 +12,7 @@ public class Main {
                 System.out.println("Card is inserted");
             else
                 System.out.println("Card is NOT inserted");
+            target.configureSmartcard(ConfigureSmartcardCommand.T.T1, 0, 0, true, true);
             target.close();
         } catch (Exception e) {
             if (target != null)

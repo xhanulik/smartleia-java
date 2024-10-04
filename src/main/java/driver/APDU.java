@@ -8,8 +8,7 @@ public class APDU extends LEIAStructure {
     }
 
     @Override
-    public LEIAStructure unpack(byte[] buffer) {
+    public void unpack(byte[] buffer) {
         // TODO
-        return null;
     }
 }

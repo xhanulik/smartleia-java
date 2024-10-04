@@ -7,7 +7,6 @@ public class RESP extends LEIAStructure {
     }
 
     @Override
-    public LEIAStructure unpack(byte[] buffer) {
-        return null;
+    public void unpack(byte[] buffer) {
     }
 }

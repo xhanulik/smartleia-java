@@ -4,6 +4,7 @@ import com.fazecast.jSerialComm.*;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 public class LEIA {
 
@@ -176,10 +177,13 @@ public class LEIA {
             byte[] zeroCommand = new byte[COMMAND_LEN_SIZE];
             serialPort.writeBytes(zeroCommand, zeroCommand.length, 0);
         } else {
-            // send comprehensive command
+            // pack structure into byte array
             byte[] packedData = struct.pack();
-            byte[] size = ByteBuffer.allocate(COMMAND_LEN_SIZE).putInt(packedData.length).array();
+            // wrap packed size into 4 bytes
+            byte[] size = ByteBuffer.allocate(COMMAND_LEN_SIZE).putInt(packedData.length).array(); // byteorder = big
+            System.out.printf("Sending size: %s\n", Arrays.toString(size));
             serialPort.writeBytes(size, size.length, 0);
+            System.out.printf("Sending packed data: %s\n", Arrays.toString(packedData));
             serialPort.writeBytes(packedData, packedData.length, 0);
         }
         checkStatus();
@@ -220,16 +224,33 @@ public class LEIA {
     }
 
     /**
-     * Configure connected smartcard
-     * @param protocolToUse
-     * @param ETUToUse
-     * @param freqToUse
-     * @param negotiatePts
-     * @param negotiateBaudrate
+     * Configure connected smartcard reader
+     * @param protocolToUse value of ConfigureSmartcardCommand.T
+     * @param ETUToUse 0 for letting the reader negotiate ETU
+     * @param freqToUse 0 for letting the reader negotiate frequency
+     * @param negotiatePts true if yes, false otherwise
+     * @param negotiateBaudrate true if yes, false otherwise
      * @implNote command ID: "c" + LEIA structure
      */
-    public void configureSmartcard(T protocolToUse, int ETUToUse, int freqToUse, boolean negotiatePts, boolean negotiateBaudrate) {
+    public void configureSmartcard(ConfigureSmartcardCommand.T protocolToUse, int ETUToUse, int freqToUse, boolean negotiatePts, boolean negotiateBaudrate) {
+        System.out.println("Configuring smartcard reader");
+        if (!isCardInserted())
+            throw new RuntimeException("Error: card not inserted! Please insert a card to configure it.");
+        synchronized (lock) {
+            testWaitingFlag();
 
+            if (protocolToUse == null) {
+                protocolToUse = ConfigureSmartcardCommand.T.T1;
+            }
+
+            try {
+                ConfigureSmartcardCommand struct = new ConfigureSmartcardCommand(protocolToUse.value(), ETUToUse, freqToUse, negotiatePts, negotiateBaudrate);
+                sendCommand("c".getBytes(), struct);
+            } catch (Exception e) {
+                throw new RuntimeException("Error: configure_smartcard failed with the asked parameters! Please check what your card supports (PTS, ETU, ...) and try other parameters!");
+            }
+        }
+        System.out.println("Configuring smartcard reader OK");
     }
 
     /**
