@@ -172,7 +172,6 @@ public class LEIA {
         testWaitingFlag();
         System.out.printf("Sending command: %s\n", Arrays.toString(command));
         serialPort.writeBytes(command, command.length, 0);
-        wait(100);
 
         if (struct == null) {
             // send simple byte command filled with zeroes
@@ -185,11 +184,10 @@ public class LEIA {
             byte[] size = ByteBuffer.allocate(COMMAND_LEN_SIZE).putInt(packedData.length).array(); // byteorder = big
             System.out.printf("Sending size: %s\n", Arrays.toString(size));
             serialPort.writeBytes(size, size.length, 0);
-            wait(100);
             System.out.printf("Sending packed data: %s\n", Arrays.toString(packedData));
             serialPort.writeBytes(packedData, packedData.length, 0);
-            wait(100);
         }
+        wait(2000);
         checkStatus();
         checkAck();
         System.out.println("< Send command OK");
