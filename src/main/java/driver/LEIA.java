@@ -247,7 +247,7 @@ public class LEIA {
                 ConfigureSmartcardCommand struct = new ConfigureSmartcardCommand(protocolToUse.value(), ETUToUse, freqToUse, negotiatePts, negotiateBaudrate);
                 sendCommand("c".getBytes(), struct);
             } catch (Exception e) {
-                throw new RuntimeException("Error: configure_smartcard failed with the asked parameters! Please check what your card supports (PTS, ETU, ...) and try other parameters!");
+                throw new RuntimeException("Error: configure_smartcard failed with the asked parameters!: '%s'", e.getCause());
             }
         }
         System.out.println("Configuring smartcard reader OK");
