@@ -170,7 +170,9 @@ public class LEIA {
     private void sendCommand(byte[] command, LEIAStructure struct) {
         System.out.println("Sending command");
         testWaitingFlag();
+        System.out.printf("Sending command: %s\n", Arrays.toString(command));
         serialPort.writeBytes(command, command.length, 0);
+        wait(100);
 
         if (struct == null) {
             // send simple byte command filled with zeroes
@@ -183,8 +185,10 @@ public class LEIA {
             byte[] size = ByteBuffer.allocate(COMMAND_LEN_SIZE).putInt(packedData.length).array(); // byteorder = big
             System.out.printf("Sending size: %s\n", Arrays.toString(size));
             serialPort.writeBytes(size, size.length, 0);
+            wait(100);
             System.out.printf("Sending packed data: %s\n", Arrays.toString(packedData));
             serialPort.writeBytes(packedData, packedData.length, 0);
+            wait(100);
         }
         checkStatus();
         checkAck();
@@ -247,7 +251,7 @@ public class LEIA {
                 ConfigureSmartcardCommand struct = new ConfigureSmartcardCommand(protocolToUse.value(), ETUToUse, freqToUse, negotiatePts, negotiateBaudrate);
                 sendCommand("c".getBytes(), struct);
             } catch (Exception e) {
-                throw new RuntimeException("Error: configure_smartcard failed with the asked parameters!: '" + e.getCause());
+                throw new RuntimeException("Error: configure_smartcard failed with the asked parameters!: " + e.getMessage());
             }
         }
         System.out.println("Configuring smartcard reader OK");
