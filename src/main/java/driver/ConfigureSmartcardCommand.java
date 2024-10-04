@@ -59,7 +59,7 @@ public class ConfigureSmartcardCommand extends LEIAStructure {
 
     @Override
     public void unpack(byte[] data) {
-        ByteBuffer buffer = ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN);
+        ByteBuffer buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
         this.protocol = buffer.get();
         this.etu = buffer.getInt();
         this.freq = buffer.getInt();

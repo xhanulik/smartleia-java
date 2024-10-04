@@ -29,7 +29,7 @@ public class ATR extends LEIAStructure {
 
     @Override
     public void unpack(byte[] data) {
-        ByteBuffer buffer = ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN);
+        ByteBuffer buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
         this.ts = buffer.get();
         this.t0 = buffer.get();
         buffer.get(this.ta);
