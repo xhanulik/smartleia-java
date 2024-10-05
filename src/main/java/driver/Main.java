@@ -20,7 +20,7 @@ public class Main {
             RESP response = target.sendAPDU("00A404000712345678900101");
             System.out.println("APDU: 00A404000712345678900101");
             System.out.println("RESP: " + response.toString());
-            response = target.sendAPDU("00010202620155389167c900028a37a264541ae18c5733902c0b51d7665ed41afe6788fe9fba042b32ab827bdffa6f63ccf9f27b1d03017f4f5d909c13294e8a4c389d3f57373f767033b8932942aded1a0ec48d9a1e1d26fb1eec023f74aa48f6a891e73076ca")
+            response = target.sendAPDU("00010202620155389167c900028a37a264541ae18c5733902c0b51d7665ed41afe6788fe9fba042b32ab827bdffa6f63ccf9f27b1d03017f4f5d909c13294e8a4c389d3f57373f767033b8932942aded1a0ec48d9a1e1d26fb1eec023f74aa48f6a891e73076ca");
             System.out.println("APDU: 00010202620155389167c900028a37a264541ae18c5733902c0b51d7665ed41afe6788fe9fba042b32ab827bdffa6f63ccf9f27b1d03017f4f5d909c13294e8a4c389d3f57373f767033b8932942aded1a0ec48d9a1e1d26fb1eec023f74aa48f6a891e73076ca");
             System.out.println("RESP: " + response.toString());
             target.close();
