@@ -187,7 +187,7 @@ public class LEIA {
             System.out.printf("Sending packed data: %s\n", Arrays.toString(packedData));
             serialPort.writeBytes(packedData, packedData.length, 0);
         }
-        wait(1000);
+        wait(2000);
         checkStatus();
         checkAck();
         System.out.println("< Send command OK");
@@ -198,7 +198,7 @@ public class LEIA {
         byte[] response = new byte[RESPONSE_LEN_SIZE];
         int readBytes = serialPort.readBytes(response, RESPONSE_LEN_SIZE);
         if (readBytes != RESPONSE_LEN_SIZE)
-            throw new RuntimeException("Unexpected bytes for response size!");
+            throw new RuntimeException("Unexpected bytes for response size! " + readBytes);
         // Omit creation of response size struct as in python
         int result = ByteBuffer.wrap(response).order(ByteOrder.LITTLE_ENDIAN).getInt();
         System.out.printf("Response size is %d\n", result);
