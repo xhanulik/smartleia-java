@@ -272,7 +272,6 @@ public class LEIA {
             byte[] response = new byte[55];
             serialPort.readBytes(response, resSize);
             atr.unpack(response);
-            System.out.println(atr);
         }
         System.out.println("< Get ATR OK");
         return atr;
@@ -299,7 +298,23 @@ public class LEIA {
     /**
      * @implNote command ID: "a" + APDU struct packed
      */
-    public void send_APDU() {}
+    public RESP sendAPDU(String apduString) {
+        System.out.println("> Send APDU");
+        APDU apdu = new APDU(apduString);
+        RESP response = new RESP();
+        synchronized (lock) {
+            sendCommand("a".getBytes(), apdu);
+            // read and parse response
+            int resSize = this.readResponseSize();
+            if (resSize < 14)
+                throw new RuntimeException("Unexpected response size! Cannot parse ATR.");
+            byte[] responseBytes = new byte[resSize];
+            serialPort.readBytes(responseBytes, resSize);
+            response.unpack(responseBytes);
+        }
+        System.out.println("< Send APDU OK");
+        return response;
+    }
 
     /**
      * Close opened port for LEIA device
