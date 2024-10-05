@@ -283,7 +283,12 @@ public class LEIA {
      * @implNote command ID: "O" + trigger strategy struct
      */
     public void resetTriggerStrategy() {
-
+        System.out.println("> Reset trigger Strategy");
+        synchronized (lock) {
+            SetTriggerStrategy strategy = new SetTriggerStrategy(true);
+            sendCommand("0".getBytes(), strategy);
+        }
+        System.out.println("< Reset trigger Strategy OK");
     }
 
     /**
@@ -292,7 +297,12 @@ public class LEIA {
      * @implNote command ID: "O" + trigger strategy struct
      */
     public void setPreSendAPDUTriggerStrategy() {
-
+        System.out.println("> Set Pre-Send APDU trigger Strategy");
+        synchronized (lock) {
+            SetTriggerStrategy strategy = new SetTriggerStrategy(false);
+            sendCommand("0".getBytes(), strategy);
+        }
+        System.out.println("< Pre-Send APDU trigger Strategy OK");
     }
 
     /**
