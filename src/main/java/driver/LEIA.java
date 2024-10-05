@@ -286,7 +286,7 @@ public class LEIA {
         System.out.println("> Reset trigger Strategy");
         synchronized (lock) {
             SetTriggerStrategy strategy = new SetTriggerStrategy(true);
-            sendCommand("0".getBytes(), strategy);
+            sendCommand("O".getBytes(), strategy);
         }
         System.out.println("< Reset trigger Strategy OK");
     }
