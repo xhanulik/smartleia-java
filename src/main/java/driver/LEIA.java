@@ -10,17 +10,12 @@ public class LEIA {
 
     final int RESPONSE_LEN_SIZE = 4;
     final int COMMAND_LEN_SIZE = 4;
+    final int STRATEGY_MAX = 4;
     private SerialPort serialPort = null;
-    private String device;
     private final int USB_VID = 0x3483;
     private final int USB_PID = 0x0BB9;
 
     private final Object lock = new Object();
-
-
-    public LEIA() {
-
-    }
 
     /**
      * Try to detect connected LEIA board and open serial port for communication.
@@ -51,7 +46,6 @@ public class LEIA {
                     port.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 1, 0);
                     if (port.openPort()) {
                         serialPort = port;
-                        device = port.getPortDescription();
                         System.out.printf("Serial port %s (%d/%d) is open and ready for communication\n",
                                 serialPort.getDescriptivePortName(), USB_VID, USB_PID);
                         break;
@@ -69,12 +63,19 @@ public class LEIA {
         System.out.println("< Ports opening OK");
     }
 
+    /**
+     * Check for open valid port
+     */
     private void isValidPort() {
         if (serialPort == null ||  !serialPort.isOpen()) {
             throw new RuntimeException("No serial connection created!");
         }
     }
 
+    /**
+     * Read all available bytes from connection. Used also for emptying the buffer
+     * @return read bytes
+     */
     private byte[] readAvailableBytes() {
         isValidPort();
 
@@ -92,9 +93,13 @@ public class LEIA {
         return buffer;
     }
 
-    private void wait(int miliseconds) {
+    /**
+     * Wait for given amount of time
+     * @param milliseconds time to wait
+     */
+    private void wait(int milliseconds) {
         try {
-            Thread.sleep(miliseconds);
+            Thread.sleep(milliseconds);
         } catch (InterruptedException ignored) {
             System.out.println("Sleep is overrated");
         }
@@ -187,7 +192,7 @@ public class LEIA {
             System.out.printf("Sending packed data: %s\n", Arrays.toString(packedData));
             serialPort.writeBytes(packedData, packedData.length, 0);
         }
-        wait(2000);
+        wait(1500);
         checkStatus();
         checkAck();
         System.out.println("< Send command OK");
@@ -300,11 +305,10 @@ public class LEIA {
         System.out.println("> Set Pre-Send APDU trigger Strategy");
         synchronized (lock) {
             SetTriggerStrategy strategy = new SetTriggerStrategy(false);
-            sendCommand("0".getBytes(), strategy);
+            sendCommand("O".getBytes(), strategy);
         }
         System.out.println("< Pre-Send APDU trigger Strategy OK");
     }
-
     /**
      * @implNote command ID: "a" + APDU struct packed
      */
