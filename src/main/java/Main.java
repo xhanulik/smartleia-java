@@ -3,6 +3,9 @@ import driver.ConfigureSmartcardCommand;
 import driver.TargetController;
 import oscilloscope.AbstractOscilloscope;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class Main {
     public static void main(String[] args) {
         System.out.println("Starting PicoScope");
@@ -11,6 +14,9 @@ public class Main {
         try {
             oscilloscope = AbstractOscilloscope.create();
             oscilloscope.setup();
+            oscilloscope.startMeasuring();
+            Path resultCSV = Paths.get(".");
+            oscilloscope.store(resultCSV);
             oscilloscope.finish();
         } catch (Exception e) {
             System.out.println("Caught exception:");
