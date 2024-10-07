@@ -158,8 +158,8 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         IntByReference timeIndisposedMs = new IntByReference(0);
         int status = 0;
         try {
-//            status = PicoScope6000Library.INSTANCE.ps6000RunBlock(handle, 0, numberOfSamples, timebase, oversample,
-//                    timeIndisposedMs, 0, (short) 0, null);
+            status = PicoScope6000Library.INSTANCE.ps6000RunBlock(handle, 0, numberOfSamples, timebase, oversample,
+                    timeIndisposedMs, 0, null, null);
         } catch (Exception e) {
             throw new RuntimeException("ps6000RunBlock failed with exception: " + e.getMessage());
         }

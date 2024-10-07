@@ -23,7 +23,7 @@ public interface PicoScope6000Library extends Library {
 
     int ps6000SetSimpleTrigger(short handle, short enable, short source, short threshold, short direction, int delay, short autoTrigger_ms);
 
-    int ps6000RunBlock(short handle, int noOfPreTriggerSamples, int noOfPostTriggerSamples, int timebase, short oversample, IntByReference timeIndisposedMs, int segmentIndex, short lpReady, Pointer pParameter);
+    int ps6000RunBlock(short handle, int noOfPreTriggerSamples, int noOfPostTriggerSamples, int timebase, short oversample, IntByReference timeIndisposedMs, int segmentIndex, Pointer lpReady, Pointer pParameter);
 
     int ps6000IsReady(short handle, ShortByReference ready);
 
