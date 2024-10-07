@@ -11,7 +11,7 @@ repositories {
 }
 
 application {
-    mainClass = 'driver.Main'
+    mainClass = 'Main'
 }
 
 dependencies {
