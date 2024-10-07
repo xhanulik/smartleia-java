@@ -2,6 +2,7 @@ package oscilloscope.drivers.libraries;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
+import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.ShortByReference;
 
@@ -22,7 +23,7 @@ public interface PicoScope6000Library extends Library {
 
     int ps6000SetSimpleTrigger(short handle, short enable, short source, short threshold, short direction, int delay, short autoTrigger_ms);
 
-    int ps6000RunBlock(short handle, int noOfPreTriggerSamples, int noOfPostTriggerSamples, int timebase, short oversample, IntByReference timeIndisposedMs, int segmentIndex, short lpReady, Void pParameter);
+    int ps6000RunBlock(short handle, int noOfPreTriggerSamples, int noOfPostTriggerSamples, int timebase, short oversample, IntByReference timeIndisposedMs, int segmentIndex, short lpReady, Pointer pParameter);
 
     int ps6000IsReady(short handle, ShortByReference ready);
 
