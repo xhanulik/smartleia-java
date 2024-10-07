@@ -129,13 +129,9 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
             currentTimeInterval.setValue(0);
             int status = PicoScope6000Library.INSTANCE.ps6000GetTimebase(handle, currentTimebase, numberOfSamples,
                     currentTimeInterval, oversample, currentMaxSamples, 0);
-            System.out.printf("Timebase: %d, time interval: %d, max samples: %d, status: %d\n",
+            //System.out.printf("Timebase: %d, time interval: %d, max samples: %d, status: %d\n",
                     currentTimebase, currentTimeInterval.getValue(), currentMaxSamples.getValue(), status);
-//            if (status != PicoScope6000Library.PS6000_OK) {
-//                timeInterval = 0;
-//                throw new RuntimeException("ps6000GetTimebase failed with error code: " + status);
-//            }
-            if (currentTimeInterval.getValue() > wantedTimeInterval) {
+            if (status == PicoScope6000Library.PS6000_OK && currentTimeInterval.getValue() > wantedTimeInterval) {
                 break;
             }
             timeInterval = currentTimeInterval.getValue();
@@ -146,9 +142,8 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
             throw new RuntimeException("No timebase fitting arguments found");
         }
         timebase = currentTimebase - 1;
-        System.out.printf("Timebase: %d\n", timebase);
-        System.out.printf("Interval between reading: %d ns\n", timeInterval);
-        System.out.printf("Number of samples: %d, maximum samples: %d", numberOfSamples, currentMaxSamples.getValue());
+        System.out.printf("Timebase: %d, time interval: %d, samples: %d, max samples: %d\n",
+                currentTimebase, currentTimeInterval.getValue(), numberOfSamples, currentMaxSamples.getValue());
         System.out.println("< Getting timebase OK");
     }
 
