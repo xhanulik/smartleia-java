@@ -96,6 +96,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
     }
 
     private void setTrigger() {
+        System.out.println("> Set trigger");
         short threshold = (short) volt2Adc(voltageThreshold, 2.0, maxAdcValue);
         int status;
         try {
@@ -112,13 +113,14 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
             throw new RuntimeException("ps6000SetSimpleTrigger failed");
         }
         if (status == PicoScope6000Library.PS6000_OK) {
-            finish();
+            System.out.println("Error code: " + status);
             throw new RuntimeException("Cannot setup PicoScope2000 trigger");
         }
+        System.out.println("> Set trigger OK");
     }
 
     private void calculateTimebase() {
-        System.out.println("Getting timebase");
+        System.out.println("> Getting timebase");
         IntByReference currentTimeInterval = new IntByReference(0);
         IntByReference currentMaxSamples = new IntByReference(0);
         int currentTimebase = 0;
@@ -128,6 +130,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
                     currentTimeInterval, oversample, currentMaxSamples, 0);
             if (status != PicoScope6000Library.PS6000_OK) {
                 timeInterval = 0;
+                System.out.println("Error code: " + status);
                 throw new RuntimeException("ps6000GetTimebase failed");
             }
             if (currentTimeInterval.getValue() > wantedTimeInterval) {
@@ -144,7 +147,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         System.out.printf("Timebase: %d\n", timebase);
         System.out.printf("Interval between reading: %d ns\n", timeInterval);
         System.out.printf("Number of samples: %d, maximum samples: %d", numberOfSamples, currentMaxSamples.getValue());
-
+        System.out.println("< Getting timebase OK");
     }
 
     @Override
