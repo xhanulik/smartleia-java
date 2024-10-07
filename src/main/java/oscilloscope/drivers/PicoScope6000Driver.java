@@ -75,6 +75,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
     }
 
     private void setChannel(short channel, short range) {
+        System.out.println("> Set channel");
         int status = PicoScope6000Library.INSTANCE.ps6000SetChannel(
                 handle,
                 channel,
@@ -84,8 +85,10 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
                 (float) 0,
                 (short) PicoScope6000Library.PS6000_BW_25MHZ); // limit bandwidth
         if (status != PicoScope6000Library.PS6000_OK) {
+            System.out.println("Error code: " + status);
             throw new RuntimeException("Cannot setup PicoScope 6000 channel");
         }
+        System.out.println("> Set channel OK");
     }
 
     private double volt2Adc(double thresholdVoltage, double voltageRange, double maxAdcValue) {
@@ -147,8 +150,8 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
     @Override
     public void setup() {
         setChannel(channel, channelRange);
-        setTrigger();
-        calculateTimebase();
+//        setTrigger();
+//        calculateTimebase();
     }
 
     @Override
