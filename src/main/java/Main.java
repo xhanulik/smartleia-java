@@ -16,7 +16,7 @@ public class Main {
             oscilloscope.setup();
             oscilloscope.startMeasuring();
             Path resultCSV = Paths.get(".");
-            //oscilloscope.store(resultCSV);
+            oscilloscope.store(resultCSV);
             oscilloscope.finish();
         } catch (Exception e) {
             System.out.println("Caught exception:");
