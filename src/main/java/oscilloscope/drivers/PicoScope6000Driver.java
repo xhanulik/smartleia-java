@@ -129,8 +129,6 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
             currentTimeInterval.setValue(0);
             int status = PicoScope6000Library.INSTANCE.ps6000GetTimebase(handle, currentTimebase, numberOfSamples,
                     currentTimeInterval, oversample, currentMaxSamples, 0);
-            //System.out.printf("Timebase: %d, time interval: %d, max samples: %d, status: %d\n",
-                    currentTimebase, currentTimeInterval.getValue(), currentMaxSamples.getValue(), status);
             if (status == PicoScope6000Library.PS6000_OK && currentTimeInterval.getValue() > wantedTimeInterval) {
                 break;
             }
