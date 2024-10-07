@@ -85,6 +85,6 @@ public interface PicoScope6000Library extends Library {
         PS6000_DC_50R
     }
 
-    public static final int PICO_VARIANT_INFO = 3;
-    int PS6000_BW_25MHZ = 25000000;
+    int PICO_VARIANT_INFO = 3;
+    int PS6000_BW_25MHZ = 2;
 }
