@@ -150,8 +150,8 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
     @Override
     public void setup() {
         setChannel(channel, channelRange);
-//        setTrigger();
-//        calculateTimebase();
+        setTrigger();
+        calculateTimebase();
     }
 
     @Override
