@@ -221,7 +221,6 @@ public class TargetController {
             printDebug("Sending packed data: %s\n", Arrays.toString(packedData));
             serialPort.writeBytes(packedData, packedData.length, 0);
         }
-        wait(1500);
         checkStatus();
         checkAck();
         printDebug("< Send command OK\n");
@@ -240,7 +239,7 @@ public class TargetController {
         // Omit creation of response size struct as in python
         int result = ByteBuffer.wrap(response).order(ByteOrder.LITTLE_ENDIAN).getInt();
         System.out.printf("Response size is %d\n", result);
-        printDebug("< Read response size OK");
+        printDebug("< Read response size OK\n");
         return result;
     }
 
