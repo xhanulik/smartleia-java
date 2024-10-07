@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-public class RESP extends LEIAStructure {
+public class RESP extends DataStructure {
     private int le;
     private byte sw1;
     private byte sw2;

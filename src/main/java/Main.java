@@ -1,16 +1,13 @@
 import driver.ATR;
 import driver.ConfigureSmartcardCommand;
-import driver.LEIA;
-import driver.RESP;
-
-import java.util.Arrays;
+import driver.TargetController;
 
 public class Main {
     public static void main(String[] args) {
         System.out.println("Starting LEIA:\n");
-        LEIA target = null;
+        TargetController target = null;
         try {
-            target = new LEIA();
+            target = new TargetController();
             target.open();
             if (target.isCardInserted())
                 System.out.println("Card is inserted");

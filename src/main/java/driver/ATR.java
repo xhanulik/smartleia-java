@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-public class ATR extends LEIAStructure {
+public class ATR extends DataStructure {
     private byte ts = 0;
     private byte t0 = 0;
     private byte[] ta = new byte[4];

@@ -3,7 +3,7 @@ package driver;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class ConfigureSmartcardCommand extends LEIAStructure {
+public class ConfigureSmartcardCommand extends DataStructure {
     private byte protocol;
     private int etu;
     private int freq;

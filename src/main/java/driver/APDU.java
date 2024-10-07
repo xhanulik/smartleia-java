@@ -1,12 +1,10 @@
 package driver;
 
-import org.w3c.dom.ranges.Range;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-public class APDU extends LEIAStructure {
+public class APDU extends DataStructure {
 
     private byte cla;
     private byte ins;
