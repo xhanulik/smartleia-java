@@ -1,6 +1,7 @@
 package oscilloscope.drivers;
 
 
+import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.ShortByReference;
 import oscilloscope.AbstractOscilloscope;
@@ -155,10 +156,10 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
     public void startMeasuring() {
         System.out.println("> Start measuring");
         IntByReference timeIndisposedMs = new IntByReference(0);
-        int status;
+        int status = 0;
         try {
-            status = PicoScope6000Library.INSTANCE.ps6000RunBlock(handle, 0, numberOfSamples, timebase, oversample,
-                    timeIndisposedMs, 0, (short) 0, null);
+//            status = PicoScope6000Library.INSTANCE.ps6000RunBlock(handle, 0, numberOfSamples, timebase, oversample,
+//                    timeIndisposedMs, 0, (short) 0, null);
         } catch (Exception e) {
             throw new RuntimeException("ps6000RunBlock failed with exception: " + e.getMessage());
         }
