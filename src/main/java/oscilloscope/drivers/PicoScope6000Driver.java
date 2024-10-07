@@ -3,6 +3,7 @@ package oscilloscope.drivers;
 
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.ShortByReference;
+import jdk.nashorn.internal.runtime.ECMAException;
 import oscilloscope.AbstractOscilloscope;
 import oscilloscope.drivers.libraries.PicoScope6000Library;
 
@@ -112,9 +113,8 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         } catch (Exception e) {
             throw new RuntimeException("ps6000SetSimpleTrigger failed");
         }
-        if (status == PicoScope6000Library.PS6000_OK) {
-            System.out.println("Error code: " + status);
-            throw new RuntimeException("Cannot setup PicoScope2000 trigger");
+        if (status != PicoScope6000Library.PS6000_OK) {
+            throw new RuntimeException("Setting up trigger with error code: " + status);
         }
         System.out.println("> Set trigger OK");
     }
@@ -130,8 +130,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
                     currentTimeInterval, oversample, currentMaxSamples, 0);
             if (status != PicoScope6000Library.PS6000_OK) {
                 timeInterval = 0;
-                System.out.println("Error code: " + status);
-                throw new RuntimeException("ps6000GetTimebase failed");
+                throw new RuntimeException("ps6000GetTimebase failed with error code: " + status);
             }
             if (currentTimeInterval.getValue() > wantedTimeInterval) {
                 break;
@@ -165,9 +164,15 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
     @Override
     public void stopDevice() {
         System.out.println("> Stop device");
-        int status = PicoScope6000Library.INSTANCE.ps6000Stop(handle);
+        int status;
+        try {
+            status = PicoScope6000Library.INSTANCE.ps6000Stop(handle);
+        } catch (Exception e) {
+            throw new RuntimeException("ps6000Stop failed");
+        }
+
         if (status != PicoScope6000Library.PS6000_OK) {
-            throw new RuntimeException("Error while stopping device!");
+            throw new RuntimeException("Stopping device failed with error code: " + status);
         }
         System.out.println("> Stop device OK");
     }
@@ -184,6 +189,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         try {
             stopDevice();
         } catch (Exception e) {
+            // try to close device anyway
             System.out.println(e.getMessage());
         }
 
