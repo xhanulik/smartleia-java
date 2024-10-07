@@ -10,6 +10,7 @@ public class Main {
         AbstractOscilloscope oscilloscope = null;
         try {
             oscilloscope = AbstractOscilloscope.create();
+            oscilloscope.setup();
             oscilloscope.finish();
         } catch (Exception e) {
             System.out.println("Caught exception:");
