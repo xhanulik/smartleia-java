@@ -8,9 +8,9 @@ import java.util.Arrays;
 
 public class LEIA {
 
+    final private boolean DEBUG = true;
     final int RESPONSE_LEN_SIZE = 4;
     final int COMMAND_LEN_SIZE = 4;
-    final int STRATEGY_MAX = 4;
     private SerialPort serialPort = null;
     private final int USB_VID = 0x3483;
     private final int USB_PID = 0x0BB9;
@@ -18,17 +18,29 @@ public class LEIA {
     private final Object lock = new Object();
 
     /**
+     * Debug print
+     * @param format A format string
+     * @param args Arguments
+     */
+    private void printDebug(String format, Object ... args) {
+        if (DEBUG) {
+            System.out.printf(format, args);
+        }
+    }
+
+    /**
      * Try to detect connected LEIA board and open serial port for communication.
      */
     public void open() {
-        System.out.println("> Opening ports");
+        printDebug("> Opening ports\n");
+
         SerialPort[] availablePorts = SerialPort.getCommPorts();
         int count = 0;
 
-        // Iterate through available ports and match by VID and PID
+        // Iterate over available ports and match by VID and PID
         for (SerialPort port : availablePorts) {
             if (port.getVendorID() == USB_VID && port.getProductID() == USB_PID) {
-                System.out.printf("Found matching device %s (%d/%d)\n", port.getDescriptivePortName(), USB_VID, USB_PID);
+                printDebug("Found matching device %s (%d/%d)\n", port.getDescriptivePortName(), USB_VID, USB_PID);
                 count++;
             }
         }
@@ -40,10 +52,13 @@ public class LEIA {
         // Test connection to the ports and try to open the final one
         for (SerialPort port : availablePorts) {
             if (port.getVendorID() == USB_VID && port.getProductID() == USB_PID) {
-                System.out.printf("Connecting to device %s (%d/%d)\n", port.getDescriptivePortName(), USB_VID, USB_PID);
+                printDebug("Connecting to device %s (%d/%d)\n", port.getDescriptivePortName(), USB_VID, USB_PID);
                 try {
                     port.setBaudRate(115200);
-                    port.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 1, 0);
+                    // Python code uses timeout=1s ~ immediately when the requested number of bytes are available, otherwise wait until the timeout expires
+                    // blocking for write might not be working on other OS than Windows
+                    port.setComPortTimeouts(SerialPort.TIMEOUT_READ_BLOCKING | SerialPort.TIMEOUT_WRITE_BLOCKING,
+                            1000, 0);
                     if (port.openPort()) {
                         serialPort = port;
                         System.out.printf("Serial port %s (%d/%d) is open and ready for communication\n",
@@ -52,7 +67,7 @@ public class LEIA {
                     }
                 } catch (Exception e) {
                     port.closePort();
-                    throw new RuntimeException("Cannot connect to LEIA device");
+                    throw new RuntimeException("Cannot connect to LEIA device!");
                 }
             }
         }
@@ -60,7 +75,7 @@ public class LEIA {
         // read all bytes from port
         readAvailableBytes();
         testWaitingFlag();
-        System.out.println("< Ports opening OK");
+        printDebug("< Ports opening OK\n");
     }
 
     /**
@@ -79,7 +94,7 @@ public class LEIA {
     private byte[] readAvailableBytes() {
         isValidPort();
 
-        System.out.print("Reading all bytes");
+        printDebug("Reading all bytes\n");
 
         int bytesRead = 0;
         int availableBytes = serialPort.bytesAvailable();
@@ -89,7 +104,7 @@ public class LEIA {
             int bytes = serialPort.readBytes(buffer, availableBytes, bytesRead);
             bytesRead += bytes;
         }
-        System.out.printf(": %d bytes read\n", bytesRead);
+        printDebug(": %d bytes read\n", bytesRead);
         return buffer;
     }
 
@@ -105,10 +120,13 @@ public class LEIA {
         }
     }
 
+    /**
+     *  Verify the presence of the waiting flag.
+     */
     private void testWaitingFlag() {
-        System.out.println("> Test waiting flag");
+        printDebug("> Test waiting flag\n");
         isValidPort();
-        readAvailableBytes();
+        readAvailableBytes(); // empty read buffer
 
         byte[] command = new byte[] { ' ' }; // b" "
         serialPort.writeBytes(command, command.length, 0);
@@ -123,17 +141,20 @@ public class LEIA {
 
         // combine
         byte[] buffer = new byte[1 + allBytes.length];
-        buffer[0] = singleByte[0];  // First byte
+        buffer[0] = singleByte[0];
         System.arraycopy(allBytes, 0, buffer, 1, allBytes.length);
 
-        if (buffer[buffer.length - 1] != 87) {
+        if (buffer[buffer.length - 1] != 87) { // "W"
             throw new RuntimeException("Cannot connect to LEIA.");
         }
-        System.out.println("< Waiting flag OK");
+        printDebug("< Waiting flag OK\n");
     }
 
+    /**
+     * Verify the presence of the status flag.
+     */
     private void checkStatus() {
-        System.out.println("> Check status");
+        printDebug("> Check status\n");
         byte[] status = new byte[1];
         int readBytes = serialPort.readBytes(status, status.length);
 
@@ -160,22 +181,30 @@ public class LEIA {
         else if (status[0] != 0x00)
             throw new RuntimeException("Error status!");
 
-        System.out.println("< Status OK");
+        printDebug("< Status OK\n");
     }
 
+    /**
+     * Verify the presence of acknowledge flag
+     */
     private void checkAck() {
-        System.out.println("> Check ACK");
+        printDebug("> Check ACK\n");
         byte[] status = new byte[1];
         int readBytes = serialPort.readBytes(status, status.length);
         if (readBytes == 0 || status[0] != 'R')
             throw new RuntimeException("No response ack received.");
-        System.out.println("< ACK OK");
+        printDebug("< ACK OK\n");
     }
 
+    /**
+     * Send command to board
+     * @param command command in bytes
+     * @param struct data to be sent
+     */
     private void sendCommand(byte[] command, LEIAStructure struct) {
-        System.out.println("> Send command");
+        printDebug("> Send command\n");
         testWaitingFlag();
-        System.out.printf("Sending command: %s\n", Arrays.toString(command));
+        printDebug("Sending command: %s\n", Arrays.toString(command));
         serialPort.writeBytes(command, command.length, 0);
 
         if (struct == null) {
@@ -186,20 +215,24 @@ public class LEIA {
             // pack structure into byte array
             byte[] packedData = struct.pack();
             // wrap packed size into 4 bytes
-            byte[] size = ByteBuffer.allocate(COMMAND_LEN_SIZE).putInt(packedData.length).array(); // byteorder = big
-            System.out.printf("Sending size: %s\n", Arrays.toString(size));
+            byte[] size = ByteBuffer.allocate(COMMAND_LEN_SIZE).putInt(packedData.length).array();
+            printDebug("Sending size: %s\n", Arrays.toString(size));
             serialPort.writeBytes(size, size.length, 0);
-            System.out.printf("Sending packed data: %s\n", Arrays.toString(packedData));
+            printDebug("Sending packed data: %s\n", Arrays.toString(packedData));
             serialPort.writeBytes(packedData, packedData.length, 0);
         }
         wait(1500);
         checkStatus();
         checkAck();
-        System.out.println("< Send command OK");
+        printDebug("< Send command OK\n");
     }
 
+    /**
+     * Read response size after sending a command
+     * @return response size
+     */
     private int readResponseSize() {
-        System.out.println("> Read response size");
+        printDebug("> Read response size");
         byte[] response = new byte[RESPONSE_LEN_SIZE];
         int readBytes = serialPort.readBytes(response, RESPONSE_LEN_SIZE);
         if (readBytes != RESPONSE_LEN_SIZE)
@@ -207,17 +240,17 @@ public class LEIA {
         // Omit creation of response size struct as in python
         int result = ByteBuffer.wrap(response).order(ByteOrder.LITTLE_ENDIAN).getInt();
         System.out.printf("Response size is %d\n", result);
-        System.out.println("< Read response size OK");
+        printDebug("< Read response size OK");
         return result;
     }
 
     /**
-     *
+     * test whether the card is inserted to the board
      * @return True if card is inserted, false otherise
      * @implNote command ID: "?"
      */
     public boolean isCardInserted() {
-        System.out.println("> Is card inserted");
+        printDebug("> Is card inserted\n");
         byte[] response;
         synchronized (lock) {
             this.sendCommand("?".getBytes(), null);
@@ -228,7 +261,7 @@ public class LEIA {
             response = new byte[1];
             serialPort.readBytes(response, resSize);
         }
-        System.out.println("< Is card inserted");
+        printDebug("< Is card inserted\n");
         return response[0] == 1;
     }
 
@@ -242,7 +275,7 @@ public class LEIA {
      * @implNote command ID: "c" + LEIA structure
      */
     public void configureSmartcard(ConfigureSmartcardCommand.T protocolToUse, int ETUToUse, int freqToUse, boolean negotiatePts, boolean negotiateBaudrate) {
-        System.out.println("> Configuring smartcard reader");
+        printDebug("> Configuring smartcard reader\n");
         if (!isCardInserted())
             throw new RuntimeException("Error: card not inserted! Please insert a card to configure it.");
         synchronized (lock) {
@@ -259,18 +292,18 @@ public class LEIA {
                 throw new RuntimeException("Error: configure_smartcard failed with the asked parameters!: " + e.getMessage());
             }
         }
-        System.out.println("<Configuring smartcard reader OK");
+        printDebug("< Configuring smartcard reader OK\n");
     }
 
     /**
+     * Fill the ATR object with information received from board
      * @implNote command ID: "t"
      */
     public ATR getATR() {
-        System.out.println("> Get ATR");
+        printDebug("> Get ATR\n");
         ATR atr = new ATR();
         synchronized (lock) {
             sendCommand("t".getBytes(), null);
-            // read and parse response
             int resSize = this.readResponseSize();
             if (resSize != 55)
                 throw new RuntimeException("Unexpected response size! Cannot parse ATR.");
@@ -278,7 +311,7 @@ public class LEIA {
             serialPort.readBytes(response, resSize);
             atr.unpack(response);
         }
-        System.out.println("< Get ATR OK");
+        printDebug("< Get ATR OK\n");
         return atr;
     }
 
@@ -288,12 +321,12 @@ public class LEIA {
      * @implNote command ID: "O" + trigger strategy struct
      */
     public void resetTriggerStrategy() {
-        System.out.println("> Reset trigger Strategy");
+        printDebug("> Reset trigger Strategy\n");
         synchronized (lock) {
             SetTriggerStrategy strategy = new SetTriggerStrategy(true);
             sendCommand("O".getBytes(), strategy);
         }
-        System.out.println("< Reset trigger Strategy OK");
+        printDebug("< Reset trigger Strategy OK\n");
     }
 
     /**
@@ -302,31 +335,33 @@ public class LEIA {
      * @implNote command ID: "O" + trigger strategy struct
      */
     public void setPreSendAPDUTriggerStrategy() {
-        System.out.println("> Set Pre-Send APDU trigger Strategy");
+        printDebug("> Set Pre-Send APDU trigger Strategy\n");
         synchronized (lock) {
             SetTriggerStrategy strategy = new SetTriggerStrategy(false);
             sendCommand("O".getBytes(), strategy);
         }
-        System.out.println("< Pre-Send APDU trigger Strategy OK");
+        printDebug("< Pre-Send APDU trigger Strategy OK\n");
     }
     /**
+     * Send APDU to connected card
      * @implNote command ID: "a" + APDU struct packed
      */
     public RESP sendAPDU(String apduString) {
-        System.out.println("> Send APDU");
+        printDebug("> Send APDU\n");
         APDU apdu = new APDU(apduString);
         RESP response = new RESP();
         synchronized (lock) {
+            System.out.println("APDU: " + apduString);
             sendCommand("a".getBytes(), apdu);
-            // read and parse response
             int resSize = this.readResponseSize();
             if (resSize < 14)
                 throw new RuntimeException("Unexpected response size! Cannot parse ATR.");
             byte[] responseBytes = new byte[resSize];
             serialPort.readBytes(responseBytes, resSize);
             response.unpack(responseBytes);
+            System.out.println("RES: " + response);
         }
-        System.out.println("< Send APDU OK");
+        printDebug("< Send APDU OK\n");
         return response;
     }
 
@@ -334,14 +369,12 @@ public class LEIA {
      * Close opened port for LEIA device
      */
     public void close() {
-        System.out.println("> Close connection");
+        printDebug("> Close connection\n");
         if (serialPort != null && serialPort.isOpen()) {
             System.out.printf("Closing serial port %s (%d/%d)\n", serialPort.getDescriptivePortName(), USB_VID, USB_PID);
             serialPort.closePort();
             serialPort = null;
         }
-        System.out.println("> Close connection OK");
+        printDebug("> Close connection OK\n");
     }
-
-    public static void createAPDUFromBytes() {}
 }
