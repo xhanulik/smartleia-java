@@ -233,13 +233,13 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         // wait until all data are measured
         waitForSamples();
         // set buffer for final values
-//        short[] adcValues = new short[numberOfSamples];
-//        setBuffer(adcValues);
-//
-//        // retrieve ADC samples
-//        IntByReference numberOfCapturedSamples = new IntByReference(numberOfSamples);
-//        getADCValues(numberOfCapturedSamples);
-//
+        short[] adcValues = new short[numberOfSamples];
+        setBuffer(adcValues);
+
+        // retrieve ADC samples
+        IntByReference numberOfCapturedSamples = new IntByReference(numberOfSamples);
+        getADCValues(numberOfCapturedSamples);
+
 //        // convert into volt values
 //        double[] voltValues = adc2Volt(adcValues, maxAdcValue, 2.0);
 //        writeIntoCSV(voltValues, numberOfCapturedSamples.getValue(), file);
