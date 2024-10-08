@@ -1,16 +1,15 @@
 package oscilloscope;
 
 
-import org.apache.commons.csv.CSVFormat;
 import oscilloscope.drivers.PicoScope6000Driver;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
 public abstract class AbstractOscilloscope {
+    final private boolean DEBUG = true;
 
     /**
      * Array of implemented oscilloscope drivers
@@ -18,30 +17,48 @@ public abstract class AbstractOscilloscope {
     static Class<?>[] oscilloscopeDrivers = {
             PicoScope6000Driver.class
     };
-    /**
-     * Commandline arguments
-     */
-//    protected static Args args = null;
-    protected Path csv = FileSystems.getDefault().getPath("./measurements.csv");
-    protected CSVFormat format = CSVFormat.Builder.create(CSVFormat.DEFAULT).setCommentMarker('#')
-            .setRecordSeparator(System.lineSeparator())
-            .build();
 
+//    protected static Args args = null;
 
 //    protected AbstractOscilloscope(Args args) {
 //        AbstractOscilloscope.args = args;
 //    }
 
-    protected double volt2Adc(double thresholdVoltage, double voltageRange, double maxAdcValue) {
-        return (thresholdVoltage / voltageRange) * maxAdcValue;
+    /**
+     * Convert ADC to volt values
+     * @param voltValue value in Volts
+     * @param voltageRange range of voltage values
+     * @param maxAdcValue max ADC value
+     * @return ADC value
+     */
+    protected double volt2Adc(double voltValue, double voltageRange, double maxAdcValue) {
+        return (voltValue / voltageRange) * maxAdcValue;
     }
 
+    /**
+     *
+     * @param adcValues
+     * @param maxAdcValue
+     * @param voltageRange
+     * @return
+     */
     protected static double[] adc2Volt(short[] adcValues, int maxAdcValue, double voltageRange) {
         double[] voltages = new double[adcValues.length];
         for (int i = 0; i < adcValues.length; i++) {
             voltages[i] = (adcValues[i] / (double) maxAdcValue) * voltageRange;
         }
         return voltages;
+    }
+
+    /**
+     * Debug print
+     * @param format A format string
+     * @param args Arguments
+     */
+    protected void printDebug(String format, Object ... args) {
+        if (DEBUG) {
+            System.out.printf(format, args);
+        }
     }
 
     /** Factory method
