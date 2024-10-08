@@ -216,7 +216,6 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
 
     private void writeIntoCSV(double[] voltValues, int sampleNumber, Path filePath) {
         System.out.println("> Write into CSV");
-        double currentTime = 0;
 
         // Write into CSV file
         try (FileWriter writer = new FileWriter(filePath.toAbsolutePath().toFile())) {
@@ -225,8 +224,8 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
             writer.append(",\n");
 
             for (int i = 0; i < sampleNumber; i++) {
-                writer.append(String.format("%.6f,%.6f\n", currentTime, voltValues[i]));
-                currentTime = (currentTime + timeInterval) / 1e6;
+                double time = (i * timeInterval) / 1e6;
+                writer.append(String.format("%.6f,%.6f\n", time, voltValues[i]));
             }
 
             System.out.println("Data has been written to " + filePath);
