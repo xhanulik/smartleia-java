@@ -16,6 +16,7 @@ import java.nio.file.Path;
 
 public class PicoScope6000Driver extends AbstractOscilloscope {
     short handle = 0;
+    String deviceName;
     private final short channel = (short) PicoScope6000Library.PicoScope6000Channel.PS6000_CHANNEL_B.ordinal();
     private final short channelRange = (short) PicoScope6000Library.PicoScope6000Range.PS6000_1V.ordinal();
     private final short triggerChannel = (short) PicoScope6000Library.PicoScope6000Channel.PS6000_TRIGGER_AUX.ordinal();
@@ -71,7 +72,6 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
             return false;
         }
         // get device name
-        String deviceName;
         deviceName = new String(info, StandardCharsets.UTF_8);
         System.out.println("Connected device: " + deviceName);
         printDebug("> Opening device OK\n");
@@ -135,8 +135,8 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
             throw new RuntimeException("No timebase fitting arguments found");
         }
         timebase = currentTimebase - 1;
-        System.out.printf("Timebase: %d, time interval: %d, samples: %d, max samples: %d\n",
-                currentTimebase, currentTimeInterval.getValue(), numberOfSamples, currentMaxSamples.getValue());
+        System.out.printf("Device %s setup - Timebase: %d, time interval: %d, samples: %d, max samples: %d\n",
+                deviceName, currentTimebase, currentTimeInterval.getValue(), numberOfSamples, currentMaxSamples.getValue());
         printDebug("< Getting timebase OK\n");
     }
 
@@ -145,7 +145,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         setChannel(channel, channelRange);
         setTrigger();
         calculateTimebase();
-        System.out.println("PicoScope 6000 configured");
+        System.out.printf("Device %s configured", deviceName);
     }
 
     @Override
@@ -200,7 +200,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
     }
 
     private void getValuesIntoBuffer(IntByReference adcValuesLength) {
-        printDebug("> Get ADC values");
+        printDebug("> Get ADC values\n");
         int status;
         try {
             status = PicoScope6000Library.INSTANCE.ps6000GetValues(handle, 0, adcValuesLength, 1, (short) 0, 0, null);
@@ -284,7 +284,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
 
     @Override
     public void finish() {
-        printDebug("> Finish");
+        printDebug("> Finish\n");
         // stop measuring
         try {
             stopDevice();
@@ -295,7 +295,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
 
         // close device
         PicoScope6000Library.INSTANCE.ps6000CloseUnit(handle);
-        printDebug("> Finish OK");
+        printDebug("> Finish OK\n");
         System.out.println("PicoScope 6000 disconnected");
     }
 }

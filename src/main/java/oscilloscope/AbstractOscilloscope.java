@@ -9,7 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 
 public abstract class AbstractOscilloscope {
-    final private boolean DEBUG = true;
+    final private boolean DEBUG = false;
 
     /**
      * Array of implemented oscilloscope drivers
