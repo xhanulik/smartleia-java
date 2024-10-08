@@ -225,7 +225,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
 
             for (int i = 0; i < sampleNumber; i++) {
                 double time = (i * timeInterval) / 1e6;
-                writer.append(String.format("%f,%f\n", time, voltValues[i]));
+                writer.append(String.format("%.9f,%.9f\n", time, voltValues[i]));
             }
 
             System.out.println("Data has been written to " + filePath);
