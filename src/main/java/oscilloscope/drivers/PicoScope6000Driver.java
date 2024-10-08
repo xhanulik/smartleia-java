@@ -145,7 +145,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         setChannel(channel, channelRange);
         setTrigger();
         calculateTimebase();
-        System.out.printf("Device %s configured", deviceName);
+        System.out.printf("Device %s configured\n", deviceName);
     }
 
     @Override
