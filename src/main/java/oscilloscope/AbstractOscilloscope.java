@@ -32,6 +32,18 @@ public abstract class AbstractOscilloscope {
 //        AbstractOscilloscope.args = args;
 //    }
 
+    protected double volt2Adc(double thresholdVoltage, double voltageRange, double maxAdcValue) {
+        return (thresholdVoltage / voltageRange) * maxAdcValue;
+    }
+
+    protected static double[] adc2Volt(short[] adcValues, int maxAdcValue, double voltageRange) {
+        double[] voltages = new double[adcValues.length];
+        for (int i = 0; i < adcValues.length; i++) {
+            voltages[i] = (adcValues[i] / (double) maxAdcValue) * voltageRange;
+        }
+        return voltages;
+    }
+
     /** Factory method
      *
      * @return constructed {@link AbstractOscilloscope} object

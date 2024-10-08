@@ -15,7 +15,7 @@ public class Main {
             oscilloscope = AbstractOscilloscope.create();
             oscilloscope.setup();
             oscilloscope.startMeasuring();
-            Path resultCSV = Paths.get(".");
+            Path resultCSV = Paths.get("./measurements.csv");
             oscilloscope.store(resultCSV);
             oscilloscope.finish();
         } catch (Exception e) {

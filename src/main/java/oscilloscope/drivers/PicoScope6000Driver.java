@@ -1,14 +1,14 @@
 package oscilloscope.drivers;
 
 
-import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.ShortByReference;
 import oscilloscope.AbstractOscilloscope;
 import oscilloscope.drivers.libraries.PicoScope6000Library;
 
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 public class PicoScope6000Driver extends AbstractOscilloscope {
@@ -24,10 +24,11 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
     int timebase = 0;
     int wantedTimeInterval = 256; //ns
     int timeInterval = 0; //ns
-    static int numberOfSamples = 1_950_000;
-    static short oversample = 0;
+    int numberOfSamples = 1_950_000;
+    short oversample = 0;
+    short downsample = 0;
 
-    static int maxAdcValue = 32767;
+    int maxAdcValue = 32767;
 
     final int timebaseMax = 100;
 
@@ -55,10 +56,10 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
 
         // get info about device
         byte[] info = new byte[40];
-        ShortByReference reqsize = new ShortByReference((short) 0);
+        ShortByReference infoLength = new ShortByReference((short) 0);
         try {
             status = PicoScope6000Library.INSTANCE.ps6000GetUnitInfo(handle, info, (short) info.length,
-                    reqsize, PicoScope6000Library.PICO_VARIANT_INFO);
+                    infoLength, PicoScope6000Library.PICO_VARIANT_INFO);
         } catch (Exception e) {
             throw new RuntimeException("ps6000GetUnitInfo failed with exception: " + e.getMessage());
         }
@@ -69,11 +70,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         }
         // get device name
         String deviceName;
-        try {
-            deviceName = new String(info, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            deviceName = "unknown";
-        }
+        deviceName = new String(info, StandardCharsets.UTF_8);
         System.out.println("Device: " + deviceName);
         System.out.println("> Opening device OK");
         return true;
@@ -92,10 +89,6 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
             throw new RuntimeException("ps6000SetChannel failed with error code: " + status);
         }
         System.out.println("> Set channel OK");
-    }
-
-    private double volt2Adc(double thresholdVoltage, double voltageRange, double maxAdcValue) {
-        return (thresholdVoltage / voltageRange) * maxAdcValue;
     }
 
     private void setTrigger() {
@@ -118,7 +111,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         System.out.println("> Getting timebase");
         IntByReference currentTimeInterval = new IntByReference(0);
         IntByReference currentMaxSamples = new IntByReference(0);
-        int currentTimebase = 0;
+        int currentTimebase;
 
         for (currentTimebase = 0; currentTimebase < timebaseMax; currentTimebase++) {
             currentTimeInterval.setValue(0);
@@ -156,7 +149,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
     public void startMeasuring() {
         System.out.println("> Start measuring");
         IntByReference timeIndisposedMs = new IntByReference(0);
-        int status = 0;
+        int status;
         try {
             status = PicoScope6000Library.INSTANCE.ps6000RunBlock(handle, 0, numberOfSamples, timebase, oversample,
                     timeIndisposedMs, 0, null, null);
@@ -167,6 +160,90 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
             throw new RuntimeException("ps6000RunBlock failed with error code: " + status);
         }
         System.out.println("< Start measuring OK");
+    }
+
+    private void waitForSamples() {
+        System.out.println("> Wait for samples");
+        ShortByReference ready = new ShortByReference((short) 0);
+        while (ready.getValue() == 0) {
+            int status;
+            try {
+                status = PicoScope6000Library.INSTANCE.ps6000IsReady(handle, ready);
+                Thread.sleep(100);
+                System.out.println("...waiting for data...");
+            } catch (Exception e) {
+                throw new RuntimeException("ps6000IsReady failed with exception: " + e.getMessage());
+            }
+            if (status != PicoScope6000Library.PS6000_OK) {
+                throw new RuntimeException("ps6000IsReady failed with error code: " + status);
+            }
+        }
+        System.out.println("< Wait for samples OK");
+    }
+
+    private void setBuffer(short[] adcValues) {
+        int status;
+        try {
+            status = PicoScope6000Library.INSTANCE.ps6000SetDataBuffer(handle, channel, adcValues, numberOfSamples, downsample);
+        } catch (Exception e) {
+            throw new RuntimeException("ps6000SetDataBuffer failed with exception: " + e.getMessage());
+        }
+        if (status != PicoScope6000Library.PS6000_OK) {
+            throw new RuntimeException("ps6000SetDataBuffer failed with error code: " + status);
+        }
+    }
+
+    private void getADCValues(IntByReference adcValuesLength) {
+        int status;
+        try {
+            status = PicoScope6000Library.INSTANCE.ps6000GetValues(handle, 0, adcValuesLength, 1, (short) 0, 0, null);
+        } catch (Exception e) {
+            throw  new RuntimeException("ps6000GetValues failed with exception: " + e.getMessage());
+        }
+        if (status != PicoScope6000Library.PS6000_OK) {
+            throw new RuntimeException("ps6000GetValues failed with error code: " + status);
+        }
+        System.out.printf("Captured %d samples\n", adcValuesLength.getValue());
+    }
+
+    private void writeIntoCSV(double[] voltValues, int sampleNumber, Path filePath) {
+        double currentTime = 0;
+
+        // Write into CSV file
+        try (FileWriter writer = new FileWriter(filePath.toAbsolutePath().toFile())) {
+            writer.append("Time,Channel\n");
+            writer.append("(ms),(V)\n");
+            writer.append(",\n");
+
+            for (int i = 0; i < sampleNumber; i++) {
+                writer.append(String.format("%.6f,%.6f\n", currentTime, voltValues[i]));
+                currentTime = (currentTime + timeInterval) / 1e6;
+            }
+
+            System.out.println("Data has been written to " + filePath);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void store(Path file) {
+        System.out.println("> Store");
+        // wait until all data are measured
+        waitForSamples();
+        // set buffer for final values
+//        short[] adcValues = new short[numberOfSamples];
+//        setBuffer(adcValues);
+//
+//        // retrieve ADC samples
+//        IntByReference numberOfCapturedSamples = new IntByReference(numberOfSamples);
+//        getADCValues(numberOfCapturedSamples);
+//
+//        // convert into volt values
+//        double[] voltValues = adc2Volt(adcValues, maxAdcValue, 2.0);
+//        writeIntoCSV(voltValues, numberOfCapturedSamples.getValue(), file);
+        System.out.println("< Store done");
     }
 
     @Override
@@ -183,26 +260,6 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
             throw new RuntimeException("ps6000Stop failed with error code: " + status);
         }
         System.out.println("> Stop device OK");
-    }
-
-    @Override
-    public void store(Path file) throws IOException {
-        System.out.println("> Store");
-        ShortByReference ready = new ShortByReference((short) 0);
-        while (ready.getValue() == 0) {
-            int status;
-            try {
-                status = PicoScope6000Library.INSTANCE.ps6000IsReady(handle, ready);
-                Thread.sleep(100);
-                System.out.println("...waiting for data...");
-            } catch (Exception e) {
-                throw new RuntimeException("ps6000IsReady failed with exception: " + e.getMessage());
-            }
-            if (status != PicoScope6000Library.PS6000_OK) {
-                throw new RuntimeException("ps6000IsReady failed with error code: " + status);
-            }
-        }
-        System.out.println("< Store done");
     }
 
     @Override
