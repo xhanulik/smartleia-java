@@ -199,7 +199,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         System.out.println("> Set buffer OK");
     }
 
-    private void getADCValues(IntByReference adcValuesLength) {
+    private void getValuesIntoBuffer(IntByReference adcValuesLength) {
         System.out.println("> Get ADC values");
         int status;
         try {
@@ -215,6 +215,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
     }
 
     private void writeIntoCSV(double[] voltValues, int sampleNumber, Path filePath) {
+        System.out.println("> Write into CSV");
         double currentTime = 0;
 
         // Write into CSV file
@@ -231,8 +232,9 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
             System.out.println("Data has been written to " + filePath);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Writing into CSV failed");
         }
+        System.out.println("> Write into CSV OK");
     }
 
     @Override
@@ -241,6 +243,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         // wait until all data are measured
         waitForSamples();
         // set buffer for final values
+        short[] adcValues;
         // allocate memory for data
         try (Memory buffer = new Memory((long) numberOfSamples * Native.getNativeSize(Short.TYPE))) {
             // initialize buffer to zeroes
@@ -248,16 +251,19 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
                 buffer.setShort((long) n * Native.getNativeSize(Short.TYPE), (short) 0);
             }
             setBuffer(buffer);
+
+            // retrieve ADC samples
+            IntByReference numberOfCapturedSamples = new IntByReference(numberOfSamples);
+            getValuesIntoBuffer(numberOfCapturedSamples);
+
+            // store values from buffer into adcValues
+            adcValues = new short[numberOfCapturedSamples.getValue()];
+            buffer.read(0, adcValues, 0, adcValues.length);
         }
+        // convert into volt values
+        double[] voltValues = adc2Volt(adcValues, maxAdcValue, 2.0);
+        writeIntoCSV(voltValues, adcValues.length, file);
 
-
-        // retrieve ADC samples
-//        IntByReference numberOfCapturedSamples = new IntByReference(numberOfSamples);
-//        getADCValues(numberOfCapturedSamples);
-
-//        // convert into volt values
-//        double[] voltValues = adc2Volt(adcValues, maxAdcValue, 2.0);
-//        writeIntoCSV(voltValues, numberOfCapturedSamples.getValue(), file);
         System.out.println("< Store done");
     }
 
