@@ -1,6 +1,9 @@
 package oscilloscope.drivers;
 
 
+import com.sun.jna.Memory;
+import com.sun.jna.Native;
+import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.ShortByReference;
 import oscilloscope.AbstractOscilloscope;
@@ -181,19 +184,23 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         System.out.println("< Wait for samples OK");
     }
 
-    private void setBuffer(short[] adcValues) {
+    private void setBuffer(Pointer buffer) {
+        System.out.println("> Set buffer");
         int status;
+
         try {
-            status = PicoScope6000Library.INSTANCE.ps6000SetDataBuffer(handle, channel, adcValues, numberOfSamples, downsample);
+            status = PicoScope6000Library.INSTANCE.ps6000SetDataBuffer(handle, channel, buffer, numberOfSamples, downsample);
         } catch (Exception e) {
             throw new RuntimeException("ps6000SetDataBuffer failed with exception: " + e.getMessage());
         }
         if (status != PicoScope6000Library.PS6000_OK) {
             throw new RuntimeException("ps6000SetDataBuffer failed with error code: " + status);
         }
+        System.out.println("> Set buffer OK");
     }
 
     private void getADCValues(IntByReference adcValuesLength) {
+        System.out.println("> Get ADC values");
         int status;
         try {
             status = PicoScope6000Library.INSTANCE.ps6000GetValues(handle, 0, adcValuesLength, 1, (short) 0, 0, null);
@@ -204,6 +211,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
             throw new RuntimeException("ps6000GetValues failed with error code: " + status);
         }
         System.out.printf("Captured %d samples\n", adcValuesLength.getValue());
+        System.out.println("> Get ADC values OK");
     }
 
     private void writeIntoCSV(double[] voltValues, int sampleNumber, Path filePath) {
@@ -233,12 +241,19 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         // wait until all data are measured
         waitForSamples();
         // set buffer for final values
-        short[] adcValues = new short[numberOfSamples];
-        setBuffer(adcValues);
+        // allocate memory for data
+        try (Memory buffer = new Memory((long) numberOfSamples * Native.getNativeSize(Short.TYPE))) {
+            // initialize buffer to zeroes
+            for (int n = 0; n < numberOfSamples; n = n + 1) {
+                buffer.setShort((long) n * Native.getNativeSize(Short.TYPE), (short) 0);
+            }
+            setBuffer(buffer);
+        }
+
 
         // retrieve ADC samples
-        IntByReference numberOfCapturedSamples = new IntByReference(numberOfSamples);
-        getADCValues(numberOfCapturedSamples);
+//        IntByReference numberOfCapturedSamples = new IntByReference(numberOfSamples);
+//        getADCValues(numberOfCapturedSamples);
 
 //        // convert into volt values
 //        double[] voltValues = adc2Volt(adcValues, maxAdcValue, 2.0);

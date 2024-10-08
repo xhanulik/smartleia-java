@@ -27,7 +27,7 @@ public interface PicoScope6000Library extends Library {
 
     int ps6000IsReady(short handle, ShortByReference ready);
 
-    int ps6000SetDataBuffer(short handle, short channel, short[] buffer, int bufferLth, short downSampleRatioMode);
+    int ps6000SetDataBuffer(short handle, short channel, Pointer buffer, int bufferLth, short downSampleRatioMode);
 
     int ps6000GetValues(short handle, int startIndex, IntByReference noOfSamples, int downSampleRatio, short downSampleRatioMode, int segmentIndex, ShortByReference overflow);
 
