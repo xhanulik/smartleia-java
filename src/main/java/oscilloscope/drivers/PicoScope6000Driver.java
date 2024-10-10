@@ -220,6 +220,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
 
         int samplingFrequency = (int) (1 / (timeInterval / 1_000_000_000.0)); // convert ns to
         LowPassFilter filter = null;
+        System.out.println("Sampling freq: " + samplingFrequency);
 
         if (cutOffFrequency > 0)
             filter = new LowPassFilter(samplingFrequency, cutOffFrequency);
