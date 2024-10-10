@@ -1,6 +1,7 @@
 import driver.ATR;
 import driver.ConfigureSmartcardCommand;
 import driver.TargetController;
+import filter.LowPassFilter;
 import oscilloscope.AbstractOscilloscope;
 
 import java.nio.file.Path;
@@ -42,7 +43,7 @@ public class Main {
             // Leia code end
 
             // PicoScope store and close
-            oscilloscope.store(resultCSV);
+            oscilloscope.store(resultCSV, 15000);
             oscilloscope.finish();
 
             // Leia close

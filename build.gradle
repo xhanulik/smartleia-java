@@ -21,6 +21,7 @@ dependencies {
     implementation 'com.opencsv:opencsv:5.9'
     implementation 'org.apache.commons:commons-csv:1.11.0'
     implementation 'net.java.dev.jna:jna:5.14.0'
+    implementation 'uk.me.berndporr:iirj:1.2'
 }
 
 test {

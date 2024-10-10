@@ -6,6 +6,7 @@ import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.ShortByReference;
+import filter.LowPassFilter;
 import oscilloscope.AbstractOscilloscope;
 import oscilloscope.drivers.libraries.PicoScope6000Library;
 
@@ -214,18 +215,26 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         printDebug("> Get ADC values OK\n");
     }
 
-    private void writeIntoCSV(double[] voltValues, int sampleNumber, Path filePath) {
+    private void writeIntoCSV(double[] voltValues, int sampleNumber, Path filePath, int cutOffFrequency) {
         printDebug("> Write into CSV\n");
+
+        int samplingFrequency = (int) (1 / (timeInterval / 1_000_000_000.0)); // convert ns to
+        LowPassFilter filter = null;
+
+        if (cutOffFrequency > 0)
+            filter = new LowPassFilter(samplingFrequency, cutOffFrequency);
 
         // Write into CSV file
         try (FileWriter writer = new FileWriter(filePath.toAbsolutePath().toFile())) {
             writer.append("Time,Channel\n");
-            writer.append("(ms),(V)\n");
+            writer.append("(ns),(V)\n");
             writer.append(",\n");
 
             for (int i = 0; i < sampleNumber; i++) {
-                double time = (i * timeInterval) / 1e6;
-                writer.append(String.format("%.9f,%.9f\n", time, voltValues[i]));
+                if (filter != null)
+                    writer.append(String.format("%d,%.9f\n", i * timeInterval, filter.applyLowPassFilter(voltValues[i])));
+                else
+                    writer.append(String.format("%d,%.9f\n", i * timeInterval, voltValues[i]));
             }
 
             System.out.println("Data has been written to " + filePath);
@@ -237,7 +246,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
     }
 
     @Override
-    public void store(Path file) {
+    public void store(Path file, int cutOffFrequency) {
         printDebug("> Store\n");
         // wait until all data are measured
         waitForSamples();
@@ -261,7 +270,7 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         }
         // convert into volt values
         double[] voltValues = adc2Volt(adcValues, maxAdcValue, 2.0);
-        writeIntoCSV(voltValues, adcValues.length, file);
+        writeIntoCSV(voltValues, adcValues.length, file, cutOffFrequency);
 
         printDebug("< Store OK\n");
     }
