@@ -227,14 +227,14 @@ public class PicoScope6000Driver extends AbstractOscilloscope {
         // Write into CSV file
         try (FileWriter writer = new FileWriter(filePath.toAbsolutePath().toFile())) {
             writer.append("Time,Channel\n");
-            writer.append("(ns),(V)\n");
+            writer.append("(ms),(V)\n");
             writer.append(",\n");
 
             for (int i = 0; i < sampleNumber; i++) {
                 if (filter != null)
-                    writer.append(String.format("%d,%.9f\n", i * timeInterval, filter.applyLowPassFilter(voltValues[i])));
+                    writer.append(String.format("%9f,%.9f\n", (i * timeInterval) / 1e6, filter.applyLowPassFilter(voltValues[i])));
                 else
-                    writer.append(String.format("%d,%.9f\n", i * timeInterval, voltValues[i]));
+                    writer.append(String.format("%9f,%.9f\n", (i * timeInterval) / 1e6, voltValues[i]));
             }
 
             System.out.println("Data has been written to " + filePath);

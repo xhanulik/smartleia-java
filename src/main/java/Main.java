@@ -43,7 +43,7 @@ public class Main {
             // Leia code end
 
             // PicoScope store and close
-            oscilloscope.store(resultCSV, 20000);
+            oscilloscope.store(resultCSV, 5000);
             oscilloscope.finish();
 
             // Leia close
